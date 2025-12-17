@@ -49,6 +49,7 @@ class Product {
   final bool? manageStock;
   final int? stockQuantity;
   final String? stockStatus;
+  final bool? inStock;
   final String? backorders;
   final bool? backordersAllowed;
   final bool? backordered;
@@ -109,6 +110,7 @@ class Product {
       this.manageStock,
       this.stockQuantity,
       this.stockStatus,
+      this.inStock,
       this.backorders,
       this.backordersAllowed,
       this.backordered,
@@ -173,7 +175,8 @@ class Product {
         taxClass = json['tax_class'],
         manageStock = json['manage_stock'],
         stockQuantity = json['stock_quantity'],
-        stockStatus = json['stock_status'],
+        stockStatus = _normalizeStockStatus(json),
+        inStock = json['in_stock'],
         backorders = json['backorders'],
         backordersAllowed = json['backorders_allowed'],
         backordered = json['backordered'],
@@ -244,6 +247,7 @@ class Product {
         'manage_stock': manageStock,
         'stock_quantity': stockQuantity,
         'stock_status': stockStatus,
+        'in_stock': inStock,
         'backorders': backorders,
         'backorders_allowed': backordersAllowed,
         'backordered': backordered,
@@ -274,6 +278,45 @@ class Product {
         'date_created': dateCreated,
         'date_created_gmt': dateCreatedGMT,
       };
+
+  @override
+  String toString() {
+    return '''
+  Product {
+  id: $id,
+  name: $name,
+  price: $price,
+  regularPrice: $regularPrice,
+  salePrice: $salePrice,
+  sku: $sku,
+  type: $type,
+  status: $status,
+  totalSales: $totalSales,
+  stockStatus: $stockStatus,
+  inStock: $inStock,
+  stockQuantity: $stockQuantity,
+  categories: ${categories.map((c) => c.name).toList()},
+  images: ${images.map((i) => i.src).toList()},
+  attributes: ${attributes.map((a) => a.name).toList()},
+  dateCreated: $dateCreated
+}
+''';
+  }
+
+  static String? _normalizeStockStatus(Map<String, dynamic> json) {
+    // If WooCommerce already gives stock_status → use it
+    if (json['stock_status'] != null) {
+      return json['stock_status'];
+    }
+
+    // If membership upgrade uses `in_stock = true`
+    if (json['in_stock'] == true) {
+      return "instock";
+    }
+
+    // Fallback → "outofstock"
+    return "outofstock";
+  }
 }
 
 class Tag {
